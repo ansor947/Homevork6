@@ -145,7 +145,6 @@ print()
 print(Ослик)
 print(Ivan.calculate())
 print(Ослик.calculate())
-print(Ослик.__lt__(Ivan))
 print(Ivan.__lt__(Ослик))
 print()
 
@@ -167,47 +166,46 @@ print(Ахалай)
 print(Ахалай.__lt__(Рахат))
 print(Рахат.__lt__(Ахалай))
 print(Рахат.calculate_lec())
-print(Ахалай.calculate_lec())
+
 print()
 
 
 lecture_dict = [
-   {'name':'Ахалай', 'surname':'Махалай', 'courses':{'Python':[8,6,10], 'Git':[8,7,9]}},
-   {'name':'Захат', 'surname':'Лукум', 'courses':{'Python':[7,9,6], 'Java':[9,9,7]}}]
+   {'name':'Ахалай', 'surname':'Махалай', 'grades':[8,6,10], 'courses':['Python']},
+   {'name':'Захат', 'surname':'Лукум', 'grades':[9,9,7], 'courses':['Python']}]
 
 
 def calculate_average_lec(dict, course_name):
-    a = []
-    lecture_course = 0
-    for lecture in dict:
-        if course_name in lecture['courses'].keys():
-            lecture_course += 1
-            a += lecture['courses'][course_name]
-            sum_a = sum(a)
-            average = (sum_a / len(lecture['courses'][course_name])) / lecture_course
-            print(round(average, 2))              
-                    
-calculate_average_lec(lecture_dict,'Java')
+        grades = []
+        lecture_course = 0
+        for lecture in dict:
+                    if course_name in lecture['courses']:
+                        lecture_course += 1
+                        grades += lecture['grades']
+                        sum_grades = sum(grades)
+        average = (sum_grades / len(lecture['grades'])) / lecture_course
+        print(round(average, 2))   
+                                         
+calculate_average_lec(lecture_dict, 'Python')
+print()
 
-#Прошу объяснить почему в функцию, при наличии более одного студента с означенным курсом, попадают лишние значения. 
-# Тогда как, у лекторов, при наличии одного неповторяющегося курса( при 2х тоже задвоение) всё правильно.
-#  Сломал голову, но так и не понял.
 
 students_dict = [
-   {'name':'Ivan', 'surname':'Drago', 'gender':'m', 'courses':{'Python':[7,9,5], 'Git':[8,8,9]}},
-   {'name':'Ослик', 'surname':'Огородников', 'gender':'m', 'courses':{'Python':[6,10,10], 'Java':[9,8,7]}},           
-   {'name':'Чудо', 'surname':'Дивное', 'gender':'m','courses':{'Git':[9,9,7], 'Java':[8,8,7]}}]
+   {'name':'Ivan', 'surname':'Drago', 'gender':'m', 'grades':[7,9,5], 'courses':['Python']},
+   {'name':'Ослик', 'surname':'Огородников', 'gender':'m', 'grades':[6,10,10],  'courses':['Python']},           
+   {'name':'Чудо', 'surname':'Дивное', 'gender':'m', 'grades':[9,9,7], 'courses':['Git']}]
 
 
 def calculate_average_st(dict, course_name):
-    a = []
-    student_course = 0
-    for student in dict:
-        if course_name in student['courses'].keys():
-            student_course += 1
-            a += student['courses'][course_name]
-            sum_a = sum(a)
-            average = (sum_a / len(student['courses'][course_name])) / student_course
-            print(round(average, 2))              
-                    
+        grades = []
+        student_course = 0
+        for student in dict:
+                if course_name in student['courses']:
+                        student_course += 1
+                        grades.extend(student['grades'])
+                        sum_grades = sum(grades)
+        average = round(((sum_grades / len(student['grades'])) / student_course), 2)
+        print(average)
+                
+                                           
 calculate_average_st(students_dict,'Python')
