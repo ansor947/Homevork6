@@ -38,6 +38,8 @@ pprint(heros_diktes())
 
 ############################################################################
 
+# Token = '' удалил согласно условию
+
 class Load:
         def __init__(self, token):
                 self.token = token
