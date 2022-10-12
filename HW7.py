@@ -34,12 +34,7 @@ with open(r'recipes.txt', 'rt', encoding='utf-8') as file:
                                 
                 pprint(get_shop_list_by_dishes(['Омлет', 'Фахитос'], 5))
 
-# Здравствуйте.
-# В 3й задаче при чтении данных  и записи указан адрес на моем ноуте.
-# пример: r"C:\Users\Андрей-сан\Desktop\py-homework-basic-files\2.4.files\sorted\1.txt" 
-# Я не стал переносить или копировать файлы из клона папки в папку с ДЗ, 
-# чтобы отработать получения данных из конкретного адреса. Если это принципиально, то переделаю.
-# Буду рад замечаниям и исправлениям! 
+
 
 with open(r"C:\Users\Андрей-сан\Desktop\py-homework-basic-files\2.4.files\sorted\1.txt", "rt", encoding='utf-8') as f:
                 data = f.readlines()
