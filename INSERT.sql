@@ -35,7 +35,7 @@ INSERT INTO track(track_name, duration)
 	('Чёрное солнце', '00:06:01'),
 	('Детство', '00:03:05');
 
-INSERT INTO collection(title_collection, year_of_realise)
+INSERT INTO collection(title_collection, year_of_collection)
 	VALUES
 	('country music', '2018-11-25'),
 	('blue devils', '2019-02-28'),
@@ -48,19 +48,14 @@ INSERT INTO collection(title_collection, year_of_realise)
 	
 INSERT INTO album(title_album, year_of_realise)
 	VALUES
-	('Fearless', '2008-10-24'),
+	('Fearless', '2020-10-24'),
 	('Hotel California', '1976-12-2'),
 	('What A Wonderful World', '1988-07-06'),
 	('That"s Life', '1966-03-18'),
 	('Unplugged', '1992-01-10'),
 	('Curtis', '2007-09-03'),
 	('Просвистела', '1999-12-30'),
-	('Горизонт событий', '2017-08-23');
+	('Горизонт событий', '2019-08-23');
 
--- Здравствуйте,
--- после ввода данных заполняются лишь указанные таблицы,
--- промежуточные остаются без значений. Не пойму, почему?
--- Так и должно быть или я должет заполнять их с помощью
--- подобных команд? В чем тогда смысл привязки ключей?
--- Скорее всего я что-то делаю не так, но что?
+
 
