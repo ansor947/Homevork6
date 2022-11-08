@@ -8,7 +8,7 @@
 
 import psycopg2  
 
-conn = psycopg2.connect(database = 'Tips', user = 'postgres', password = '230611End')
+conn = psycopg2.connect(database = 'Tips', user = 'postgres', password = '******* ')# пароль удалил
 
 # Функция, создающая структуру БД (таблицы)
 
