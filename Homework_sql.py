@@ -4,7 +4,7 @@
 import psycopg2
 
 def create_connection(database, user, password):
-    conn = psycopg2.connect(database = 'homework', user = 'postgres', password = '230611End')
+    conn = psycopg2.connect(database = 'homework', user = 'postgres', password = '')
     return conn   
 
 def create_cursor(conn):

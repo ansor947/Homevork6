@@ -68,7 +68,7 @@ class Load:
 
 if __name__ == '__main__':
         ya = Load(token = TOKEN)
-        pprint
+        print()
         ya.upload_file(r'C:\Users\Андрей-сан\Desktop\Homeworks\READMY.md', 'READMY.md')
 
 

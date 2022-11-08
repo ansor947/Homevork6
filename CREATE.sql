@@ -34,9 +34,6 @@ CREATE TABLE IF NOT EXISTS collection(
     year_of_collection DATE NOT NULL
     );
 
--- Оставил все с TIME. Работа была выполнена, не стал переделывать. 
--- Учту Вашу рекомендацию в будующей.
-
 CREATE TABLE IF NOT EXISTS track(
     id SERIAL PRIMARY KEY,
     track_name VARCHAR (60) UNIQUE NOT NULL,

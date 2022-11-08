@@ -5,8 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         
-        
-        
+
         {
             "name": "Python: текущий файл",
             "type": "python",
@@ -18,10 +17,3 @@
     ]
 }
 
-        {
-            "name": "Python: Debug Console",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "internalConsole"
-        }
