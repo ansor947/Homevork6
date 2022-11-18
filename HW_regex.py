@@ -1,6 +1,6 @@
-С заданиями по этой теме я разобрался, а вот как соединить дубли - нет. Смог их выделить и хочу применить
-union для множеств, но не могу составить универсальную функцию, чтобы разбить значения дублей по 
-фамилии и имени и спарить. Прошу дать подсказку и вернуть работу, если это возможно.
+# Вроде решил, через связку ключ - значение я пытался реализовать решение изначально, но не смог, поэтому раздробил все на этапы. 
+# Если у вас есть возможность дать ссылку на решение задачи подобным образом - буду признателен.
+
 
 
 import csv
@@ -10,9 +10,8 @@ from pprint import pprint
 with open("phonebook_raw.csv", encoding="utf-8") as f:
     rows = csv.reader(f, delimiter="\n")
     contacts_list = list(rows)
-    text_list = str(rows)
-# pprint(type(text_list))
 
+# pprint(contacts_list)
 
 def processing_number(data):
     list = []
@@ -23,7 +22,6 @@ def processing_number(data):
             org_num = re.sub(pattern, string, data_person_pn)
             list.append(org_num)
     return list
-
 
 # pprint(processing_number(contacts_list))
 
@@ -49,7 +47,6 @@ def separate_email():
 
 # pprint(separate_email())
 
-
 def clearing_commas():
     list = []
     pattern = r"\,+"
@@ -62,7 +59,6 @@ def clearing_commas():
 
 # pprint(clearing_commas())
 
-
 def split_data():
     split_list =[]
     for person in clearing_commas():
@@ -70,52 +66,86 @@ def split_data():
         split_list.append(split_data)
     return split_list
 
+# pprint(split_data())
 
-# pprint(split_list())
-
-def receive_repeats():
+def lastname_repeats():
     lastname_list = []
-    firstname_list = []
-    dict_repeats = []
-    
+    lastname_repeats = []
     for argument in split_data():
         lastname_list.append(argument[0])
-        firstname_list.append(argument[1])
         x = lastname_list.count(argument[0])
-        i = firstname_list.count(argument[1])
-        if x > 1 and i > 1:
-            # dict_repeats[argument[0]] = dict_repeats.get(argument[0], argument[1])
-            dict_repeats.append(argument[0])
-    return dict_repeats
+        if x > 1:
+            lastname_repeats.append(argument[0])
+    return lastname_repeats
 
-# pprint(receive_repeats())
+# pprint(lastname_repeats())
+
+def list_repeats():
+    lastname_list = []
+    list_repeats = []
+    for argument in split_data():
+        lastname_list.append(argument[0])
+        x = lastname_list.count(argument[0])
+        if x > 1:
+            if argument[0] in argument:
+                list_repeats.append(argument)
+    return list_repeats
+
+# pprint(list_repeats())
 
 
-def create_dict():
+def create_merge_list():
     create_dict = []
     for argument in split_data():
-        if argument[0] in receive_repeats():
+        if argument[0] in lastname_repeats():
             create_dict.append(argument)
     return create_dict
 
-# pprint(create_dict())
+# pprint(create_merge_list())
 
-# def merge_data():
-#     c = []
-#     for arg in create_dict():
-#         c.append(set(arg))
-#         c = set(split_list()).intersection(create_dict())
-#     return c
+def looking_first_value():
+    first_value =[]
+    for argument in create_merge_list():
+        if (argument not in list_repeats()[0:]):
+            first_value.append(argument)  
+    return first_value
     
-# c = set(split_data()).intersection(set(create_dict()))
-# pprint(c)
-# # pprint(merge_data())
+# pprint(looking_first_value())
 
+def merge_repeats():
+    join_repeats = []
+    for argument in list_repeats():
+        for element in looking_first_value():
+            if ((element[0] == argument[0]) and (element[1] == argument[1])):
+                a = [item for item in argument if item  in element]
+                b = [item for item in element if item  not in argument]
+                c = [item for item in argument if item not in element]
+                join = a + b +c
+                join_repeats.append(join)               
+    return join_repeats
+    
+# pprint(merge_repeats())
 
+def merge_list():
+    list_unique = []
+    for argument in  split_data():
+            # pprint(element)
+            if argument not in create_merge_list():
+                list_unique.append(argument)
+    join_list = list_unique + merge_repeats()
+    return join_list
 
+# pprint(merge_list())
 
+def str_list():
+    str_list = []
+    for argument in merge_list():
+        str_list.append([",".join(argument)])
+    return str_list
 
-# with open("phonebook.csv", "w", encoding="utf-8") as f:
-#   datawriter = csv.writer(f, delimiter=',')
+# pprint(str_list())
+
+with open("phonebook.csv", "w", encoding="utf-8") as f:
+  datawriter = csv.writer(f, delimiter=',')
   
-#   datawriter.writerows(contacts_list)
+  datawriter.writerows(str_list())
