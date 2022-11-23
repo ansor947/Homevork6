@@ -15,10 +15,6 @@ articles = soup.find_all("article")
 
 
 for article in articles:
-
-    previews = article.find_all(class_ = "tm-article-snippet tm-article-snippet")
-    previews = [preview.text.strip() for preview in previews]
-
     href_article = article.find(class_ = "tm-article-snippet__readmore").attrs['href']
     full_href_article= f"{url}{href_article}"
     response_content = requests.get(full_href_article, headers = HEADERS)
