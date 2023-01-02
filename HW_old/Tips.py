@@ -1,133 +1,125 @@
-# С реализацией все не так гладко. По какой-то причине при взаимодействии VSC с sql - все глючит. 
-#     Таблицы создаются через раз, хотя код в DBeaver работает исправно. По этой причине реализовал cjnnect и 
-#     через глобальную переменную, а cursor пришлось интегрировать в каждую функцию, иначе ловил ошибки. Даже .json стал 
-#     выдавать ошибки.
+import psycopg2 
+
+# password = ****** (Пароль от with psycopg2.connect удалил!!!)
+
+def create_db(conn):
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS clients(
+                id SERIAL PRIMARY KEY,
+                first_name VARCHAR(80) UNIQUE NOT NULL,
+                last_name VARCHAR(80) UNIQUE NOT NULL,
+                email VARCHAR(80) UNIQUE NOT NULL);
+                """)
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS clients_numbers(
+                id SERIAL PRIMARY KEY,
+                client_id INTEGER NOT NULL REFERENCES clients(id),
+                phone BIGINT UNIQUE);
+                """)
+    conn.commit() 
 
 
-# Если Вы знаете с чем это может быть связано, то подскажите, пожалуйста!
+def add_client(conn, first_name, last_name, email, phones=None):
+    cur.execute("""
+                INSERT INTO clients(first_name, last_name, email) 
+                VALUES
+                (%s, %s, %s);
+                """, (first_name, last_name, email))
+    conn.commit()
 
-import psycopg2  
 
-conn = psycopg2.connect(database = 'Tips', user = 'postgres', password = '******* ')# пароль удалил
+def add_phone(conn, client_id, phone):
+    cur.execute("""
+                INSERT INTO clients_numbers(client_id, phone)
+                VALUES (%s, %s);
+                """, (client_id, phone))
+    conn.commit()
 
-# Функция, создающая структуру БД (таблицы)
 
-def clients_base():
+
+def change_client(conn, id, first_name=None, last_name=None, email=None):
+    cur.execute("""
+                UPDATE clients 
+                SET first_name = %s, last_name = %s, email = %s
+                WHERE id = %s;
+                """, (first_name, last_name, email, id))
+    conn.commit()
+
+
+
+def delete_phone(conn, client_id, phone):
+    cur.execute("""
+                DELETE FROM clients_numbers
+                WHERE client_id = %s and phone = %s;
+                """, (client_id, phone))
+    conn.commit()
+
+
+def delete_client(conn, id):
+    client_id = id
+    cur.execute("""
+                DELETE FROM clients_numbers
+                WHERE client_id = %s;
+                """, (client_id,))
+    cur.execute("""
+                DELETE FROM clients
+                WHERE id = %s;
+                """, (id,))
+    conn.commit()
+
+def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
+    cur.execute("""
+                SELECT first_name, last_name, email, phone FROM clients c
+                JOIN clients_numbers cn ON c.id = cn.client_id
+                WHERE first_name=%s OR  last_name=%s OR email=%s OR phone=%s;
+                """, (first_name, last_name, email, phone))
+    return print(cur.fetchone()) 
+ 
+
+
+
+with psycopg2.connect(database = 'HomeWork', user = 'postgres', password = password) as conn:
+
     with conn.cursor() as cur:
-        # cur.execute("""
-        # DROP TABLE clients;
-        # """)
-        cur.execute("""CREATE TABLE clients(
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(80) UNIQUE NOT NULL,
-        surname VARCHAR(80) UNIQUE NOT NULL,
-        email VARCHAR(80) UNIQUE NOT NULL);
-        """)
-    conn.commit()        
 
-def number_clients_base():
-    with conn.cursor() as cur:
-        # cur.execute("""
-        # DROP TABLE clients_numbers;
-        # """)    
-        cur.execute("""CREATE TABLE clients_numbers(
-        id SERIAL PRIMARY KEY,
-        clients_id INTEGER NOT NULL REFERENCES clients(id),
-        number INTEGER UNIQUE NOT NULL);
-        """)
+            # Функция, создающая структуру БД (таблицы)
+
+        create_db(conn)
+        conn.commit()
+            # Функция, позволяющая добавить нового клиента
+
+        add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
+        add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
+        conn.commit()
+            # Функция, позволяющая добавить телефон для существующего клиента
+
+        add_phone(conn, 1, 89275486328)
+        add_phone(conn, 2, 89157469821) 
+        add_phone(conn, 2, 89048932568)
+        conn.commit()  
+
+            # Функция, позволяющая изменить данные о клиенте
+
+        change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')    
         conn.commit()
 
-# Функция, позволяющая добавить нового клиента
 
-def new_client():
-    with conn.cursor() as cur:   
-        cur.execute("""INSERT INTO clients(name, surname, email) 
-        VALUES
-        ('Сидор', 'Сидоров', 'sidorov@yandex.ru'),
-        ('Иван', 'Иванов', 'ivanov@yandex.ru');
-        """)
-        cur.execute("""
-        SELECT * FROM clients;
-        """)
+            # Функция, позволяющая удалить существующего клиента
+
+        delete_client(conn, 1)
         conn.commit()
-        print(cur.fetchall())
-print(new_client())
 
-# Функция, позволяющая добавить телефон для существующего клиента
+            # Функция, позволяющая удалить телефон для существующего клиента
 
-def new_number():
-    with conn.cursor() as cur:
-        cur.execute("""INSERT INTO clients_numbers(number)
-        VALUES
-        (89275486328),
-        (89157469821);
-        """)
-        cur.execute("""
-        SELECT * FROM clients;
-        """)
+        delete_phone(conn, 2, 89157469821)
         conn.commit()
-        print(cur.fetchall()) 
-print(new_number())    
 
-# Функция, позволяющая изменить данные о клиенте
+            # Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
 
-def update_client():
-    with conn.cursor() as cur:
-        cur.execute("""UPDATE clients 
-            SET name = 'Василий', surname = 'Васильев', email = 'vasiliev@yandex.ru' 
-            WHERE id = 2;
-            """)
+        find_client(conn, email='vasiliev@yandex.ru')
+
         conn.commit()
-        print(cur.fetchall())
-print(update_client())    
+        print('Success')
 
-# Функция, позволяющая изменить номер телефона клиента
-
-def update_number():
-    with conn.cursor() as cur:
-        cur.execute("""UPDATE clients_numbers 
-            SET number = 89196542398,
-            WHERE id = 2;
-            """)
-        conn.commit()
-        print(cur.fetchall())
-print(update_number())
-
-# Функция, позволяющая удалить существующего клиента
-
-def delete_client():
-    with conn.cursor() as cur:
-        cur.execute("""DELETE FROM clients 
-            WHERE id = 2;
-            """)
-        conn.commit()
-        print(cur.fetchall())
-print(delete_client())
-
-# Функция, позволяющая удалить телефон для существующего клиента
-
-def delete_number():
-    with conn.cursor() as cur:
-        cur.execute("""DELETE FROM clients_numbers 
-            WHERE id = 2;
-            """)
-        conn.commit()
-        print(cur.fetchall())
-print(delete_number())
-
-# Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
-
-def get_clients_date():
-    with conn.cursor() as cur:
-        cur.execute("""
-        SELECT name, surname, email, number FROM clients c
-        JOIN clients_numbers cn ON c.id = cn.clients_id
-        WHERE name = 'Иван';
-        """)
-        print(cur.fetchall())
-print(get_clients_date())
-
-
-
-
+    cur.close() 
 conn.close()
