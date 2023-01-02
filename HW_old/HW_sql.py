@@ -1,124 +1,125 @@
-# Здесь описал логику ДЗ, как я ее понял. Не совсем ясно, нужна ли практическая реализация
-#  или лишь понимание. На всякий случай,
-#     во втором файле пример реализации.
+import psycopg2 
 
-import psycopg2
+# password = ****** (Пароль от with psycopg2.connect удалил!!!)
 
-def create_connection(database, user, password):
-    conn = psycopg2.connect(database = 'homework', user = 'postgres', password = '')
-    return conn   
+def create_db(conn):
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS clients(
+                id SERIAL PRIMARY KEY,
+                first_name VARCHAR(80) UNIQUE NOT NULL,
+                last_name VARCHAR(80) UNIQUE NOT NULL,
+                email VARCHAR(80) UNIQUE NOT NULL);
+                """)
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS clients_numbers(
+                id SERIAL PRIMARY KEY,
+                client_id INTEGER NOT NULL REFERENCES clients(id),
+                phone BIGINT UNIQUE);
+                """)
+    conn.commit() 
 
-def create_cursor(conn):
-    cur = conn.cursor
-    return cur
+
+def add_client(conn, first_name, last_name, email, phones=None):
+    cur.execute("""
+                INSERT INTO clients(first_name, last_name, email) 
+                VALUES
+                (%s, %s, %s);
+                """, (first_name, last_name, email))
+    conn.commit()
 
 
-# Функция, создающая структуру БД (таблицы)
-
-    def clients_base():
-        create_cursor.execute("""CREATE TABLE IF NOT EXISTS clients(
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(40) UNIQUE NOT NULL,
-            surname VARCHAR(40) UNIQUE NOT NULL,
-            email VARCHAR(40) UNIQUE NOT NULL);
-            """)
-        create_connection.commit()
-        
-
-    def number_clients_base():
-        create_cursor.execute("""CREATE TABLE IF NOT EXISTS clients_numbers(
-            id SERIAL PRIMARY KEY,
-            clients_id INTEGER NOT NULL REFERENCES clients(id),
-            number INTEGER NOT NULL);
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая добавить нового клиента
-
-    def new_client(name, surname, email):
-        create_cursor.execute("""INSERT INTO
-            name(),
-            surname(),
-            email();
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая добавить телефон для существующего клиента
-
-    def new_number(number):
-        create_cursor.execute("""INSERT INTO number();
-        """)
-        create_connection.commit()
-
-# Функция, позволяющая изменить данные о клиенте
-
-    def update_client(name, surname, email):
-        create_cursor.execute("""UPDATE clients 
-            SET name=%s, surname=%s, email=%s 
-            WHERE id=%s;
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая изменить номер телефона клиента
-
-    def update_number(number):
-        create_cursor.execute("""UPDATE clients_numbers SET 
-            number=%s,
-            WHERE id=%s;
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая удалить существующего клиента
-
-    def delete_client(name, surname, email):
-        create_cursor.execute("""DELETE FROM clients 
-            SET name=%s, surname=%s, email=%s 
-            WHERE id=%s;
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая удалить телефон для существующего клиента
-
-    def delete_number(number):
-        create_cursor.execute("""DELETE FROM clients_numbers SET 
-            number=%s,
-            WHERE id=%s;
-            """)
-        create_connection.commit()
-
-# Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
-
-    def get_clients_date(cursor, name:str,  surname:str, email:str, number:int) -> int:
-            create_cursor.execute("""
-            SELECT name, surname, email, number FROM clients
-            JOIN clients_numbers
-            WHERE name=%s or surname=%s or email=%s or number=%s;
-            """)       
-
-create_connection.close()
+def add_phone(conn, client_id, phone):
+    cur.execute("""
+                INSERT INTO clients_numbers(client_id, phone)
+                VALUES (%s, %s);
+                """, (client_id, phone))
+    conn.commit()
 
 
 
+def change_client(conn, id, first_name=None, last_name=None, email=None):
+    cur.execute("""
+                UPDATE clients 
+                SET first_name = %s, last_name = %s, email = %s
+                WHERE id = %s;
+                """, (first_name, last_name, email, id))
+    conn.commit()
 
 
 
+def delete_phone(conn, client_id, phone):
+    cur.execute("""
+                DELETE FROM clients_numbers
+                WHERE client_id = %s and phone = %s;
+                """, (client_id, phone))
+    conn.commit()
+
+
+def delete_client(conn, id):
+    client_id = id
+    cur.execute("""
+                DELETE FROM clients_numbers
+                WHERE client_id = %s;
+                """, (client_id,))
+    cur.execute("""
+                DELETE FROM clients
+                WHERE id = %s;
+                """, (id,))
+    conn.commit()
+
+def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
+    cur.execute("""
+                SELECT first_name, last_name, email, phone FROM clients c
+                JOIN clients_numbers cn ON c.id = cn.client_id
+                WHERE first_name=%s OR  last_name=%s OR email=%s OR phone=%s;
+                """, (first_name, last_name, email, phone))
+    return print(cur.fetchone()) 
+ 
 
 
 
+with psycopg2.connect(database = 'HomeWork', user = 'postgres', password = password) as conn:
+
+    with conn.cursor() as cur:
+
+            # Функция, создающая структуру БД (таблицы)
+
+        create_db(conn)
+        conn.commit()
+            # Функция, позволяющая добавить нового клиента
+
+        add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
+        add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
+        conn.commit()
+            # Функция, позволяющая добавить телефон для существующего клиента
+
+        add_phone(conn, 1, 89275486328)
+        add_phone(conn, 2, 89157469821) 
+        add_phone(conn, 2, 89048932568)
+        conn.commit()  
+
+            # Функция, позволяющая изменить данные о клиенте
+
+        change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')    
+        conn.commit()
 
 
-# def get_course_id(cursor, name: str) -> int:
-#             cursor.execute("""
-#             SELECT id FROM course WHERE name=%s;
-#             """, (name,))
-#             return cur.fetchone()[0]
-#         python_id = get_course_id(cur, 'Python')
-#         print('python_id', python_id)
+            # Функция, позволяющая удалить существующего клиента
 
+        delete_client(conn, 1)
+        conn.commit()
 
+            # Функция, позволяющая удалить телефон для существующего клиента
 
+        delete_phone(conn, 2, 89157469821)
+        conn.commit()
 
+            # Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
 
+        find_client(conn, email='vasiliev@yandex.ru')
 
+        conn.commit()
+        print('Success')
 
-# Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
+    cur.close() 
+conn.close()
