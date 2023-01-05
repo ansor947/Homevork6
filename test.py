@@ -3,115 +3,152 @@ import psycopg2
 def create_db(conn):
 
     cur.execute("""
-                CREATE TABLE IF NOT EXISTS clients(
+                CREATE TABLE IF NOT EXISTS genre(
                 id SERIAL PRIMARY KEY,
-                first_name VARCHAR(80) UNIQUE NOT NULL,
-                last_name VARCHAR(80) UNIQUE NOT NULL,
-                email VARCHAR(80) UNIQUE NOT NULL);
+                title VARCHAR (60) UNIQUE NOT NULL);
                 """)
 
     cur.execute("""
-                CREATE TABLE IF NOT EXISTS clients_numbers(
+                CREATE TABLE IF NOT EXISTS musician(
                 id SERIAL PRIMARY KEY,
-                client_id INTEGER NOT NULL REFERENCES clients(id),
-                phone BIGINT UNIQUE);
+                names VARCHAR(80) UNIQUE NOT NULL );
                 """)
 
-    conn.commit() 
-
-def add_client(conn, first_name, last_name, email, phones=None):
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS album(
+                id SERIAL PRIMARY KEY,
+                title_album VARCHAR (60) UNIQUE NOT NULL,
+                year_of_realise DATE NOT NULL);
+                """)
 
     cur.execute("""
-                INSERT INTO clients(first_name, last_name, email) 
+                CREATE TABLE IF NOT EXISTS collection(
+                id SERIAL PRIMARY KEY,
+                title_collection VARCHAR (60) UNIQUE NOT NULL,
+                year_of_collection DATE NOT NULL);
+                """)
+
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS track(
+                id SERIAL PRIMARY KEY,
+                track_name VARCHAR (60) UNIQUE NOT NULL,
+                album_id INTEGER REFERENCES album(id),
+                duration TIME);
+                """)
+
+def create_dop(conn):
+
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS collections_tracks(
+                id SERIAL PRIMARY KEY,
+                track_id INTEGER NOT NULL REFERENCES track(id),
+                collection_id INTEGER NOT NULL REFERENCES collection(id)); 
+                """)
+
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS genres_musicians(
+                id SERIAL PRIMARY KEY,
+                genre_id INTEGER NOT NULL REFERENCES genre(id),
+                musician_id INTEGER NOT NULL REFERENCES musician(id));
+
+                """)
+
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS album_musicians(
+                id SERIAL PRIMARY KEY,
+                album_id INTEGER NOT NULL REFERENCES album(id),
+                musician_id INTEGER NOT NULL REFERENCES musician(id));
+                """)
+
+
+def insert(conn):
+
+    cur.execute("""
+                INSERT INTO genre (title)
                 VALUES
-                (%s, %s, %s);
-                """, (first_name, last_name, email))
-    conn.commit()
-
-def add_phone(conn, client_id, phone):
-
-    cur.execute("""
-                INSERT INTO clients_numbers(client_id, phone)
-                VALUES (%s, %s);
-                """, (client_id, phone))
-    conn.commit()
-
-
-
-def change_client(conn, id, first_name=None, last_name=None, email=None):
+                ('country'),
+                ('blues'),
+                ('jazz'),
+                ('hip hop'),
+                ('rock');
+                """)
 
     cur.execute("""
-                UPDATE clients 
-                SET first_name = %s, last_name = %s, email = %s
-                WHERE id = %s;
-                """, (first_name, last_name, email, id))
-    conn.commit()
-
-
-
-def delete_phone(conn, client_id, phone):
-
-    cur.execute("""
-                DELETE FROM clients_numbers
-                WHERE client_id = %s AND phone = %s;
-                """, (client_id, phone))
-    conn.commit()
-
-
-
-def delete_client(conn, id):
-
-    client_id = id
+                INSERT INTO musician (names)
+                VALUES
+                ('Taylor Swift'),
+                ('Eagles'),
+                ('Louis Armstrong'),
+                ('Frank Sinatra'),
+                ('Eric Clapton'),
+                ('50 Cent'),
+                ('ДДТ'),
+                ('Би-2');
+                """)
 
     cur.execute("""
-                DELETE FROM clients_numbers
-                WHERE client_id = %s;
-                """, (client_id,))
+                INSERT INTO album(title_album, year_of_realise)
+                VALUES
+                ('Fearless', '2020-10-24'),
+                ('Hotel California', '1976-12-2'),
+                ('What A Wonderful World', '1988-07-06'),
+                ('That"s Life', '1966-03-18'),
+                ('Unplugged', '1992-01-10'),
+                ('Curtis', '2007-09-03'),
+                ('Просвистела', '1999-12-30'),
+                ('Горизонт событий', '2019-08-23');
+                """)
 
     cur.execute("""
-                DELETE FROM clients
-                WHERE id = %s;
-                """, (id,))
-    conn.commit()
+                INSERT INTO collection(title_collection, year_of_collection)
+                VALUES
+                ('country music', '2018-11-25'),
+                ('blue devils', '2019-02-28'),
+                ('blues collection', '2019-03-08'),
+                ('jazz collection', '2000-10-17'),
+                ('jazz volume 1', '2003-01-28'),
+                ('jazz the best', '2014-07-09'),
+                ('hip hop music', '2020-12-26'),
+                ('rock collection', '2018-03-25');
+                """)
 
-def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
     cur.execute("""
-                SELECT first_name, last_name, email, phone FROM clients c
-                JOIN clients_numbers cn ON c.id = cn.client_id
-                WHERE first_name=%s OR  last_name=%s OR email=%s OR phone=%s;
-                """, (first_name, last_name, email, phone))
-    return print(cur.fetchone()) 
-
-
-
-
+                INSERT INTO track(track_name, duration)
+                VALUES
+                ('Tell Me Why', '00:03:56'),
+                ('Fifteen', '00:03:26'),
+                ('Hotel California', '00:03:41'),
+                ('What a Wonderful World', '00:02:01'),
+                ('What Now My Love', '00:05:59'),
+                ('Somewhere My Love', '00:04:12'),
+                ('Hey Hey', '00:02:19'),
+                ('Running on Faith', '00:05:42'),
+                ('Follow My Lead', '00:03:12'),
+                ('My Gun Goo', '00:05:30'),
+                ('Ты не один', '00:03:25'),
+                ('Дождь', '00:02:51'),
+                ('Мой рок-н-ролл', '00:05:33'),
+                ('Чёрное солнце', '00:06:01'),
+                ('Детство', '00:03:05');
+                """)
 
 password = '230611End'
 
 
 
-with psycopg2.connect(database = 'HomeWork', user = 'postgres', password = password, host = 'localhost', port = '5432') as conn:
+with psycopg2.connect(database = 'Tips', user = 'postgres', password = password, host = 'localhost', port = '5432') as conn:
 
     with conn.cursor() as cur:
 
         create_db(conn)
         conn.commit()
-        add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
-        add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
+
+        insert(conn)
         conn.commit()
-        add_phone(conn, 1, 89275486328)
-        add_phone(conn, 2, 89157469821) 
-        add_phone(conn, 2, 89048932568) 
+
+        create_dop(conn)
         conn.commit()
-        change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')
-        conn.commit()
-        delete_phone(conn, 2, 89157469821)
-        conn.commit()
-        delete_client(conn, 1)
-        conn.commit()
-        find_client(conn, phone=89275486328)
-        find_client(conn, last_name='Иванов')
-        conn.commit()
+
         print('Success')
 
 
