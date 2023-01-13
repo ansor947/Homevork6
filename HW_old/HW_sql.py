@@ -1,3 +1,13 @@
+# Доброго времени суток,
+
+# заранее извиняюсь за потраченное Вами время. Смог исправить 3 из 4х отмеченных Вами пунктов. 
+# В крайней функции пришло понимание того, что от меня требуется, но не могу его реализовать.
+# Не могу найти инструментарий, чтобы использовать в WHERE входящие аргументы функции более 4 раз, иначе выдает "выход за пределы..."
+# Также не могу найти механизмы, которые позволят мне сделать выборку из значений и оставить ненулевое, coalesce к сожалению в WHERE не работает...
+# Второй вариант работает без ошибок, но возвращает None и я понимаю почему, но поправит как, увы, не знаю.
+# За час перед сдачей ДЗ попался инструмент DECLARE, но разобраться в нем и проработать его не успел.
+# Подскажите, пожайлуста, как быть или ссылку на статью, где можно найти решение. 
+
 import psycopg2 
 
 # password = ****** (Пароль от with psycopg2.connect удалил!!!)
@@ -40,7 +50,7 @@ def add_phone(conn, client_id, phone):
 def change_client(conn, id, first_name=None, last_name=None, email=None):
     cur.execute("""
                 UPDATE clients 
-                SET first_name = %s, last_name = %s, email = %s
+                SET first_name = coalesce(%s, first_name), last_name = coalesce(%s, last_name), email = coalesce(%s, email)               
                 WHERE id = %s;
                 """, (first_name, last_name, email, id))
     conn.commit()
@@ -68,10 +78,28 @@ def delete_client(conn, id):
     conn.commit()
 
 def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
+    # cur.execute("""
+    #             SELECT first_name, last_name, email, phone FROM clients c
+    #             JOIN clients_numbers cn ON c.id = cn.client_id
+    #             WHERE first_name=%s OR  last_name=%s OR email=%s OR phone=%s;
+    #             """, (first_name, last_name, email, phone))
+
+    # cur.execute("""
+    #             SELECT first_name, last_name, email, phone FROM clients c
+    #             JOIN clients_numbers cn ON c.id = cn.client_id
+    #             WHERE (first_name is NULL OR first_name = first_name) AND (last_name is NULL OR last_name = last_name)
+    #             AND (email is NULL OR email = first_name) AND (phone is NULL OR phone = phone);
+    #             """, (first_name, last_name, email, phone))
+
     cur.execute("""
+                DECLARE @first_name VARCHAR = %s 
+                DECLARE @last_name VARCHAR = %s 
+                DECLARE @email VARCHAR = %s 
+                DECLARE @phone BIGINT = %s 
                 SELECT first_name, last_name, email, phone FROM clients c
                 JOIN clients_numbers cn ON c.id = cn.client_id
-                WHERE first_name=%s OR  last_name=%s OR email=%s OR phone=%s;
+                WHERE (@first_name IS NULL OR first_name = @first_name) AND (@last_name IS NULL OR last_name = @last_name)
+                    AND (@email  IS NULL OR email = @email) AND (@phone IS NULL OR phone = @phone);
                 """, (first_name, last_name, email, phone))
     return print(cur.fetchone()) 
  
@@ -82,44 +110,40 @@ with psycopg2.connect(database = 'HomeWork', user = 'postgres', password = passw
 
     with conn.cursor() as cur:
 
-            # Функция, создающая структуру БД (таблицы)
+        if __name__ == "__main__":
 
-        create_db(conn)
-        conn.commit()
-            # Функция, позволяющая добавить нового клиента
+                # Функция, создающая структуру БД (таблицы)
 
-        add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
-        add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
-        conn.commit()
-            # Функция, позволяющая добавить телефон для существующего клиента
+            create_db(conn)
 
-        add_phone(conn, 1, 89275486328)
-        add_phone(conn, 2, 89157469821) 
-        add_phone(conn, 2, 89048932568)
-        conn.commit()  
+                # Функция, позволяющая добавить нового клиента
 
-            # Функция, позволяющая изменить данные о клиенте
+            add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
+            add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
 
-        change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')    
-        conn.commit()
+                # Функция, позволяющая добавить телефон для существующего клиента
 
+            add_phone(conn, 1, 89275486328)
+            add_phone(conn, 2, 89157469821) 
+            add_phone(conn, 2, 89048932568)  
 
-            # Функция, позволяющая удалить существующего клиента
+                # Функция, позволяющая изменить данные о клиенте
 
-        delete_client(conn, 1)
-        conn.commit()
+            change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')    
 
-            # Функция, позволяющая удалить телефон для существующего клиента
+                # Функция, позволяющая удалить существующего клиента
 
-        delete_phone(conn, 2, 89157469821)
-        conn.commit()
+            delete_client(conn, 1)
 
-            # Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
+                # Функция, позволяющая удалить телефон для существующего клиента
 
-        find_client(conn, email='vasiliev@yandex.ru')
+            delete_phone(conn, 2, 89157469821)
 
-        conn.commit()
-        print('Success')
+                # Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
+
+            find_client(conn, first_name='Василий', email='vasiliev@yandex.ru')
+
+            print('Success')
 
     cur.close() 
 conn.close()
