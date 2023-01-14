@@ -1,133 +1,118 @@
-import psycopg2 
+from pprint import pprint
 
-password = '230611End'
-# (Пароль от with psycopg2.connect удалил!!!)
+import pytest
 
-def create_db(conn):
-    cur.execute("""
-                CREATE TABLE IF NOT EXISTS clients(
-                id SERIAL PRIMARY KEY,
-                first_name VARCHAR(80) UNIQUE NOT NULL,
-                last_name VARCHAR(80) UNIQUE NOT NULL,
-                email VARCHAR(80) UNIQUE NOT NULL);
-                """)
-    cur.execute("""
-                CREATE TABLE IF NOT EXISTS clients_numbers(
-                id SERIAL PRIMARY KEY,
-                client_id INTEGER NOT NULL REFERENCES clients(id),
-                phone BIGINT UNIQUE);
-                """)
-    conn.commit() 
+from parameterized import parameterized, parameterized_class
 
+import unittest
 
-def add_client(conn, first_name, last_name, email, phones=None):
-    cur.execute("""
-                INSERT INTO clients(first_name, last_name, email) 
-                VALUES
-                (%s, %s, %s);
-                """, (first_name, last_name, email))
-    conn.commit()
+geo_logs = [
+    {'visit1': ['Москва', 'Россия']},
+    {'visit2': ['Дели', 'Индия']},
+    {'visit3': ['Владимир', 'Россия']},
+    {'visit4': ['Лиссабон', 'Португалия']},
+    {'visit5': ['Париж', 'Франция']},
+    {'visit6': ['Лиссабон', 'Португалия']},
+    {'visit7': ['Тула', 'Россия']},
+    {'visit8': ['Тула', 'Россия']},
+    {'visit9': ['Курск', 'Россия']},
+    {'visit10': ['Архангельск', 'Россия']}
+]
 
+ids = {
+  'user1': [213, 213, 213, 15, 213],
+  'user2': [54, 54, 119, 119, 119],
+  'user3': [213, 98, 98, 35]
+      }
 
-def add_phone(conn, client_id, phone):
-    cur.execute("""
-                INSERT INTO clients_numbers(client_id, phone)
-                VALUES (%s, %s);
-                """, (client_id, phone))
-    conn.commit()
+stats = {
+  'facebook': 55, 
+  'yandex': 120, 
+  'vk': 115, 
+  'google': 99, 
+  'email': 42, 
+  'ok': 98
+        }
 
 
+def check_visit(data):
+    visit_list = []
+    for  visit in geo_logs:
+        for flight in visit.values():
+            if flight[1] == 'Россия':
+                visit_list.extend(flight)
 
-def change_client(conn, id, first_name=None, last_name=None, email=None):
-
-    cur.execute("""
-                UPDATE clients 
-                SET first_name = coalesce(%s, first_name), last_name = coalesce(%s, last_name), email = coalesce(%s, email)               
-                WHERE id = %s;
-                """, (first_name, last_name, email, id))
-    conn.commit()
-
+    return visit_list
 
 
-def delete_phone(conn, client_id, phone):
-    cur.execute("""
-                DELETE FROM clients_numbers
-                WHERE client_id = %s and phone = %s;
-                """, (client_id, phone))
-    conn.commit()
+def receive_unique_values(data):
+    name1, name2, name3 = ids.values()
+    return list(set(name3) | set(name2) | set(name1))
 
 
-def delete_client(conn, id):
-    client_id = id
-    cur.execute("""
-                DELETE FROM clients_numbers
-                WHERE client_id = %s;
-                """, (client_id,))
-    cur.execute("""
-                DELETE FROM clients
-                WHERE id = %s;
-                """, (id,))
-    conn.commit()
-
-def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
-    # cur.execute("""
-    #             SELECT first_name, last_name, email, phone FROM clients c
-    #             JOIN clients_numbers cn ON c.id = cn.client_id
-    #             WHERE first_name=%s, last_name=%s, email=%s, phone=%s;
-    #             """, (first_name, last_name, email, phone))
-
-    cur.execute("""
-                SELECT first_name, last_name, email, phone FROM clients c
-                JOIN clients_numbers cn ON c.id = cn.client_id
-                WHERE (first_name is NULL OR first_name = first_name) AND (last_name is NULL OR last_name = last_name)
-                AND (email is NULL OR email = first_name) AND (phone is NULL OR phone = phone);
-                """, (first_name, last_name, email, phone))
+def receive_max_value(data):
+    max_value = max(list(stats.values()))
+    for companys_stats in stats.items():
+        list_stats = list(companys_stats) 
+        name, value = list_stats
+        if max_value == value: 
+            return name
 
 
 
-    return print(cur.fetchone()) 
- 
+# FIXTURE_visit1 = [[
+#     ({'visit1': ['Москва', 'Россия']}, ['Москва', 'Россия']),
+#     ({'visit2': ['Дели', 'Индия']}, ['Дели', 'Индия']),
+#     ({'visit3': ['Владимир', 'Россия']}, ['Владимир', 'Россия']),
+#     ({'visit4': ['Лиссабон', 'Португалия']}, ['Лиссабон', 'Португалия']),
+#     ({'visit5': ['Париж', 'Франция']}, ['Париж', 'Франция']),
+#     ({'visit6': ['Лиссабон', 'Португалия']}, ['Тула', 'Россия']),
+#     ({'visit7': ['Тула', 'Россия']}, ['Тула', 'Россия']),
+#     ({'visit8': ['Тула', 'Россия']}, ['Тула', 'Россия']),
+#     ({'visit9': ['Курск', 'Россия']}, ['Курск', 'Россия']),
+#     ({'visit10': ['Архангельск', 'Россия']}, ['Архангельск', 'Россия'])
+                #  ]]
 
 
 
-with psycopg2.connect(database = 'HomeWork', user = 'postgres', password = password) as conn:
 
-    with conn.cursor() as cur:
+FIXTURE_visit2 = [('Москва', 'Россия'),
+                 ('Владимир', 'Россия'),
+                 ('Тула', 'Россия'),
+                 ('Тула', 'Россия'),
+                 ('Курск', 'Россия'),
+                 ('Архангельск', 'Россия')]
 
-        if __name__ == "__main__":
 
-                # Функция, создающая структуру БД (таблицы)
+class TestFunc(unittest.TestCase):
 
-            # create_db(conn)
+    @parameterized.expand(check_visit(geo_logs), FIXTURE_visit2)
+    def test_check_visit(self, data, etalon):
+        # value = 'Россия'
+        result = check_visit(data)
+        self.assertEqual(result, etalon)        
+        # self.assertIn(value ,result)
 
-                # Функция, позволяющая добавить нового клиента
 
-            # add_client(conn, 'Сидор', 'Сидоров', 'sidorov@yandex.ru' )
-            # add_client(conn, 'Иван', 'Иванов', 'ivanov@yandex.ru')
+    # def receive_unique_values(self):
+    #     result = receive_unique_values(ids)
+    #     etalon = [98, 35, 213, 54, 119, 15]
+    #     self.assertEqual(result, etalon) 
 
-                # Функция, позволяющая добавить телефон для существующего клиента
 
-            # add_phone(conn, 1, 89275486328)
-            # add_phone(conn, 2, 89157469821) 
-            # add_phone(conn, 2, 89048932568) 
 
-                # Функция, позволяющая изменить данные о клиенте
+    # def receive_max_value(self):
+    #     result = receive_max_value(stats)
+    #     etalon = 'yandex'
+    #     self.assertEqual(result, etalon) 
 
-            # change_client(conn, 2, 'Василий', 'Васильев', 'vasiliev@yandex.ru')    
-            # change_client(conn, 2, 'Василий', email = 'vasiliev@yandex.ru')
-                # Функция, позволяющая удалить существующего клиента
+        
 
-            # delete_client(conn, 1)
 
-                # Функция, позволяющая удалить телефон для существующего клиента
 
-            # delete_phone(conn, 2, 89157469821)
-
-                # Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
-
-            find_client(conn, first_name='Иван', email='ivanov@yandex.ru')
-
-            print('Success')
-
-    cur.close() 
-conn.close()
+# if __name__ == '__main__':
+#     pprint(check_visit(geo_logs))
+#     print()
+#     pprint(receive_unique_values(ids))
+#     print()
+#     pprint(receive_max_value(stats))
